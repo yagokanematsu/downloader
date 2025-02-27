@@ -1,8 +1,7 @@
 import tkinter as tk
-from tkinter import ttk
+import os
 import yt_dlp #pip install yt_dlp
-
-#É necessário a bilbioteca FFmpeg também
+#Também é necessário a biblioteca FFmpeg
 
 COR_FUNDO = "#66d575" 
 COR_TEXTO = "black"
@@ -32,8 +31,8 @@ def baixar_mp3():
     nova_janela.title("Baixar MP3")
     nova_janela.geometry("350x200")
 
-    ttk.Label(nova_janela, text="Digite a URL do vídeo:", background=COR_FUNDO, foreground=COR_TEXTO, font=("Arial", 12)).pack(pady=10)
-    url = ttk.Entry(nova_janela, width=40)
+    tk.Label(nova_janela, text="Digite a URL do vídeo:", background=COR_FUNDO, foreground=COR_TEXTO, font=("Arial", 12)).pack(pady=10)
+    url = tk.Entry(nova_janela, width=40)
     url.pack(pady=5)
 
     botao_baixar = tk.Button(nova_janela, text="Baixar MP3", command=download_mp3)
@@ -47,24 +46,36 @@ def baixar_mp3():
 def baixar_mp4():
     def download_mp4():
         link = url.get()
-        opcoes = {
-            'format': 'bestvideo+bestaudio',
-            'outtmpl': '%(title)s.%(ext)s',
-            'merge_output_format': 'mp4',
-            'postprocessors': [{
-                'key': 'FFmpegVideoConvertor',
-                'preferedformat': 'mp4',
-            }]
+
+        with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
+            info = ydl.extract_info(link, download=False)
+            titulo = info.get('title')
+        video_opts = {
+            'format': 'bestvideo',
+            'outtmpl': 'video.mp4'
         }
-        with yt_dlp.YoutubeDL(opcoes) as ydl:
+        audio_opts = {
+            'format': 'bestaudio',
+            'outtmpl': 'audio.mp3'
+        }
+        with yt_dlp.YoutubeDL(video_opts) as ydl:
             ydl.download([link])
+        with yt_dlp.YoutubeDL(audio_opts) as ydl:
+            ydl.download([link])
+
+        nome_final = f"{titulo}.mp4"
+        comando_ffmpeg = f'ffmpeg -i video.mp4 -i audio.mp3 -c:v copy -c:a aac -strict experimental "{nome_final}" -y'
+        
+        os.system(comando_ffmpeg)
+        os.remove("video.mp4")
+        os.remove("audio.mp3")
 
     nova_janela = tk.Toplevel(aba, bg=COR_FUNDO)
     nova_janela.title("Baixar MP4")
     nova_janela.geometry("350x200")
 
-    ttk.Label(nova_janela, text="Digite a URL do vídeo:", background=COR_FUNDO, foreground=COR_TEXTO, font=("Arial", 12)).pack(pady=10)
-    url = ttk.Entry(nova_janela, width=40)
+    tk.Label(nova_janela, text="Digite a URL do vídeo:", background=COR_FUNDO, foreground=COR_TEXTO, font=("Arial", 12)).pack(pady=10)
+    url = tk.Entry(nova_janela, width=40)
     url.pack(pady=5)
 
     botao_baixar = tk.Button(nova_janela, text="Baixar MP4", command=download_mp4)
@@ -80,7 +91,7 @@ aba.title("YouTube Downloader")
 aba.geometry("400x300")
 aba.config(bg=COR_FUNDO)
 
-ttk.Label(aba, text="Baixe vídeos ou áudios do YouTube", background=COR_FUNDO, foreground=COR_TEXTO, font=("Arial", 14, "bold")).pack(pady=20)
+tk.Label(aba, text="Baixe vídeos ou áudios do YouTube", background=COR_FUNDO, foreground=COR_TEXTO, font=("Arial", 14, "bold")).pack(pady=20)
 
 botao1 = tk.Button(aba, text="Baixar MP3", command=baixar_mp3, width=20, height=2)
 estilizar_botao(botao1)
@@ -90,7 +101,7 @@ botao2 = tk.Button(aba, text="Baixar MP4", command=baixar_mp4, width=20, height=
 estilizar_botao(botao2)
 botao2.pack(pady=10)
 
-botao3 = tk.Button(aba, text="Sair", command=aba.destroy, width=20, height=2)
+botao3 = tk.Button(aba, text="Fechar", command=aba.destroy, width=20, height=2)
 estilizar_botao(botao3)
 botao3.pack(pady=10)
 
