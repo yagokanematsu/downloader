@@ -1,6 +1,5 @@
 # Necessário ffmpeg
 import tkinter as tk
-from tkinter import messagebox
 import os
 import yt_dlp  # pip install yt_dlp
 import subprocess
